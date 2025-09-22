@@ -29,7 +29,7 @@ shopt -s nullglob
 cd "$DIR"
 
 # Supported input formats
-EXTENSIONS=("jpg" "jpeg" "png" "bmp" "gif" "tiff" "webp" "heic")
+EXTENSIONS=("jpg" "jpeg" "png" "bmp" "tiff" "webp" "heic")
 
 for ext in "${EXTENSIONS[@]}"; do
     for img in *."$ext"; do
