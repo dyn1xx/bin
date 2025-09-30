@@ -1,0 +1,19 @@
+#!/bin/bash
+
+STATEFILE="$XDG_RUNTIME_DIR/mako-disabled"
+
+if pgrep -x mako >/dev/null; then
+    if [[ -f "$STATEFILE" ]]; then
+        # Enable mako
+        makoctl mode -r do-not-disturb
+        makoctl mode -a default
+        rm -f "$STATEFILE"
+    else
+        # Disable mako
+        makoctl mode -a do-not-disturb
+        makoctl mode -r default
+        touch "$STATEFILE"
+    fi
+else
+    notify-send "Mako is not running!"
+fi
