@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Lock
+hyprlock &
+
+# Start hypridle just for screen off
+hypridle -c $XDG_CONFIG_HOME/hypr/hypridle.conf &
+HIDLE_PID=$!
+
+# Wait for hyprlock to exit (unlock event)
+wait %1
+
+# Kill hypridle when unlocking
+kill $HIDLE_PID
+
