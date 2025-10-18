@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# Change volume
+pactl set-sink-volume @DEFAULT_SINK@ "$1"
+
+# Get current volume
+volume=$(pactl get-sink-volume @DEFAULT_SINK@ | grep -oP '\d+%' | head -1)
+
+# Send notification (replace the ID to update existing one)
+makoctl dismiss -a && notify-send -a "volume" " $volume"
