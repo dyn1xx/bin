@@ -1,32 +1,10 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+shopt -s nullglob  # make globs expand to nothing if no matches
 
 # Default conversion format
 TARGET_FORMAT="avif"
-
-usage() {
-    echo "Usage: $0 -d <directory> [-f <format>]"
-    echo "  -d DIR     Directory containing images to convert"
-    echo "  -f FORMAT  Target image format (default: png)"
-    exit 1
-}
-
-while getopts "d:f:" opt; do
-    case "$opt" in
-        d) DIR="$OPTARG" ;;
-        f) TARGET_FORMAT="$OPTARG" ;;
-        *) usage ;;
-    esac
-done
-
-if [[ -z "${DIR:-}" || ! -d "$DIR" ]]; then
-    echo "Error: Directory is not specified or doesn't exist."
-    usage
-fi
-
-shopt -s nullglob
-cd "$DIR"
 
 # Supported input formats
 EXTENSIONS=("jpg" "jpeg" "png" "bmp" "tiff" "webp" "heic")
@@ -43,3 +21,4 @@ for ext in "${EXTENSIONS[@]}"; do
         magick "$img" "$out" && trash "$img"
     done
 done
+

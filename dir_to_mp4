@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s nullglob
+
+TARGET_FORMAT="mp4"
+
+EXTENSIONS=("webm" "gif" "mkv" "mov")
+
+for ext in "${EXTENSIONS[@]}"; do
+    for img in *."$ext"; do
+        [[ "${img##*.}" == "$TARGET_FORMAT" ]] && continue
+
+        base="${img%.*}"
+        out="${base}.${TARGET_FORMAT}"
+
+        echo "Converting: $img -> $out"
+
+        ffmpeg -hide_banner -loglevel error -y -i "$img" \
+            -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" \
+            -c:v libvpx-vp9 -crf 30 -b:v 0 \
+            -c:a libopus "$out"
+
+        trash "$img"
+    done
+done

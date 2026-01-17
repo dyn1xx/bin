@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+shopt -s nullglob  # make globs expand to nothing if no matches
+
+# Default conversion format
+TARGET_FORMAT="webp"
+
+# Supported input formats
+EXTENSIONS=("jpg" "jpeg" "png" "bmp" "tiff" "avif" "heic")
+
+for ext in "${EXTENSIONS[@]}"; do
+    for img in *."$ext"; do
+        # Skip if it's already in the target format
+        [[ "${img##*.}" == "$TARGET_FORMAT" ]] && continue
+
+        base="${img%.*}"
+        out="${base}.${TARGET_FORMAT}"
+
+        echo "Converting: $img -> $out"
+        magick "$img" "$out" && trash "$img"
+    done
+done
+
