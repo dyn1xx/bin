@@ -1,17 +1,8 @@
 #!/bin/bash
 
-dirs=(*/)
-total=${#dirs[@]}
-done_count=0
-
-for dir in "${dirs[@]}"; do
-  [ -d "$dir" ] || continue
-  (
-    cd "$dir" || exit
-    YOUR_COMMAND_HERE
-  ) && {
-    ((done_count++))
-    echo "[$done_count/$total] done: $dir"
-    trash-put "$dir"
-  }
+for zipfile in *.zip; do
+  [ -f "$zipfile" ] || continue
+  dirname="${zipfile%.zip}"
+  [ -d "$dirname" ] && { echo "Skipping $zipfile (dir exists)"; continue; }
+  unzip "$zipfile" -d "$dirname"
 done
