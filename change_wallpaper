@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+WALLPAPER_DIR="$HOME/media/pictures/wallpapers"
+HYPRPAPER_CONF="$HOME/.config/hypr/hyprpaper.conf"
+HYPRLOCK_CONF="$HOME/.config/hypr/hyprlock.conf"
+
+# build list of filenames
+mapfile -t files < <(
+  find "$WALLPAPER_DIR" -maxdepth 1 -type f \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
+    -printf '%f\n' | sort
+)
+
+# pick via rofi (filenames only)
+chosen_file="$(printf '%s\n' "${files[@]}" | rofi -dmenu -i -p 'wallpaper')"
+
+# exit if nothing selected
+[ -z "$chosen_file" ] && exit 0
+
+chosen="$WALLPAPER_DIR/$chosen_file"
+
+# escape slashes for sed
+escaped_path=$(printf '%s\n' "$chosen" | sed 's/[\/&]/\\&/g')
+
+# update hyprpaper.conf
+sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRPAPER_CONF"
+
+# update hyprlock.conf
+sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRLOCK_CONF"
+
+# (optional) reload hyprpaper if running
+pkill hyprpaper
+hyprctl dispatch exec hyprpaper
