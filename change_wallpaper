@@ -17,7 +17,7 @@ mapfile -t files < <(
 # generate missing thumbnails with ffmpeg
 for file in "${files[@]}"; do
   thumb="$THUMB_DIR/${file%.*}.png"
-  if [ ! -f "$thumb" ]; then
+  if [ ! -f "$thumb" ] || [ "$WALLPAPER_DIR/$file" -nt "$thumb" ]; then
     ffmpeg -y -i "$WALLPAPER_DIR/$file" \
       -vf "scale=128:72:force_original_aspect_ratio=decrease,pad=128:72:(ow-iw)/2:(oh-ih)/2" \
       "$thumb" 2>/dev/null
