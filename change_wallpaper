@@ -3,31 +3,47 @@
 WALLPAPER_DIR="$HOME/media/pictures/wallpapers"
 HYPRPAPER_CONF="$HOME/.config/hypr/hyprpaper.conf"
 HYPRLOCK_CONF="$HOME/.config/hypr/hyprlock.conf"
+THUMB_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-thumbs"
 
-# build list of filenames
+mkdir -p "$THUMB_DIR"
+
+# build list of files and generate thumbnails
 mapfile -t files < <(
   find "$WALLPAPER_DIR" -maxdepth 1 -type f \
     \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) \
     -printf '%f\n' | sort
 )
 
-# pick via rofi (filenames only)
-chosen_file="$(printf '%s\n' "${files[@]}" | rofi -dmenu -i -p 'wallpaper')"
+# generate missing thumbnails with ffmpeg
+for file in "${files[@]}"; do
+  thumb="$THUMB_DIR/${file%.*}.png"
+  if [ ! -f "$thumb" ]; then
+    ffmpeg -y -i "$WALLPAPER_DIR/$file" \
+      -vf "scale=128:72:force_original_aspect_ratio=decrease,pad=128:72:(ow-iw)/2:(oh-ih)/2" \
+      "$thumb" 2>/dev/null
+  fi
+done
 
-# exit if nothing selected
+# build rofi input: "filename\0icon\x1f/path/to/thumb"
+rofi_input=""
+for file in "${files[@]}"; do
+  thumb="$THUMB_DIR/${file%.*}.png"
+  rofi_input+="${file}\0icon\x1f${thumb}\n"
+done
+
+# pick via rofi with icons
+chosen_file="$(printf '%b' "$rofi_input" | rofi -dmenu -i -p 'wallpaper' \
+  -show-icons \
+  -theme-str 'element-icon { size: 4em; vertical-align: 0.5; }' \
+  -theme-str 'element-text { vertical-align: 0.5; }')"
+
 [ -z "$chosen_file" ] && exit 0
 
 chosen="$WALLPAPER_DIR/$chosen_file"
-
-# escape slashes for sed
 escaped_path=$(printf '%s\n' "$chosen" | sed 's/[\/&]/\\&/g')
 
-# update hyprpaper.conf
 sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRPAPER_CONF"
-
-# update hyprlock.conf
 sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRLOCK_CONF"
 
-# (optional) reload hyprpaper if running
 pkill hyprpaper
 hyprctl dispatch exec hyprpaper
