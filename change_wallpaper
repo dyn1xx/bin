@@ -46,4 +46,4 @@ sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRPAPER_CONF"
 sed -i -E "s|^(\s*path\s*=\s*).*|\1$escaped_path|" "$HYPRLOCK_CONF"
 
 pkill hyprpaper
-hyprctl dispatch exec hyprpaper
+hyprctl dispatch 'hl.dsp.exec_cmd("hyprpaper")'
